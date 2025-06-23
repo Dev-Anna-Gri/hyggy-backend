@@ -290,19 +290,27 @@ namespace hyggy_backend.Services
             try
             {
                 const string sql = @"
-                SELECT 
-                    Id, Name, ImageAssetId, SmallDescription, Price,
-                    BrandId, SubcategoryId, IsDiscount, DiscountType,
-                    DiscountAmount, DiscountTime, FullDescriptionHTML, AddedAt
-                FROM [Products]
-            ";
+SELECT 
+    p.Id, p.Name, p.ImageAssetId, p.SmallDescription, p.Price,
+    p.BrandId, b.Name AS BrandName,
+    p.SubcategoryId, s.Name AS SubcategoryName,
+    s.CategoryId, c.Name AS CategoryName,
+    p.IsDiscount, p.DiscountType, p.DiscountAmount,
+    p.DiscountTime, p.FullDescriptionHTML, p.AddedAt,
+
+    a.Id AS AssetId, a.Path AS AssetPath, a.Alt AS AssetAlt, a.Type AS AssetType
+FROM Products p
+JOIN Brands b ON p.BrandId = b.Id
+JOIN ProductSubcategories s ON p.SubcategoryId = s.Id
+JOIN ProductCategories c ON s.CategoryId = c.Id
+LEFT JOIN Assets a ON p.ImageAssetId = a.Id
+";
 
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
 
-                // Определяем ordinals
                 var o = new
                 {
                     Id = reader.GetOrdinal("Id"),
@@ -311,33 +319,76 @@ namespace hyggy_backend.Services
                     SmD = reader.GetOrdinal("SmallDescription"),
                     Price = reader.GetOrdinal("Price"),
                     BrId = reader.GetOrdinal("BrandId"),
+                    BrName = reader.GetOrdinal("BrandName"),
                     SubId = reader.GetOrdinal("SubcategoryId"),
+                    SubName = reader.GetOrdinal("SubcategoryName"),
+                    CatId = reader.GetOrdinal("CategoryId"),
+                    CatName = reader.GetOrdinal("CategoryName"),
                     IsD = reader.GetOrdinal("IsDiscount"),
                     DT = reader.GetOrdinal("DiscountType"),
                     DA = reader.GetOrdinal("DiscountAmount"),
                     DTime = reader.GetOrdinal("DiscountTime"),
                     HTML = reader.GetOrdinal("FullDescriptionHTML"),
-                    Add = reader.GetOrdinal("AddedAt")
+                    Add = reader.GetOrdinal("AddedAt"),
+
+                    AssetId = reader.GetOrdinal("AssetId"),
+                    AssetPath = reader.GetOrdinal("AssetPath"),
+                    AssetAlt = reader.GetOrdinal("AssetAlt"),
+                    AssetType = reader.GetOrdinal("AssetType")
                 };
 
                 while (await reader.ReadAsync())
                 {
-                    list.Add(new Product
+                    var category = new ProductCategory
+                    {
+                        Id = reader.GetInt32(o.CatId),
+                        Name = reader.GetString(o.CatName)
+                    };
+
+                    var subcategory = new ProductSubcategory
+                    {
+                        Id = reader.GetInt32(o.SubId),
+                        Name = reader.GetString(o.SubName),
+                        CategoryId = category.Id
+                    };
+
+                    var brand = new Brand
+                    {
+                        Id = reader.GetInt32(o.BrId),
+                        Name = reader.GetString(o.BrName)
+                    };
+
+                    var asset = reader.IsDBNull(o.AssetId)
+                        ? null
+                        : new Asset
+                        {
+                            Id = reader.GetString(o.AssetId),
+                            Path = reader.GetString(o.AssetPath),
+                            Alt = reader.IsDBNull(o.AssetAlt) ? null : reader.GetString(o.AssetAlt),
+                            Type = reader.IsDBNull(o.AssetType) ? null : reader.GetString(o.AssetType)
+                        };
+
+                    var product = new Product
                     {
                         Id = reader.GetInt32(o.Id),
                         Name = reader.GetString(o.Name),
                         ImageAssetId = reader.IsDBNull(o.Img) ? null : reader.GetString(o.Img),
                         SmallDescription = reader.GetString(o.SmD),
                         Price = reader.GetDecimal(o.Price),
-                        BrandId = reader.GetInt32(o.BrId),
-                        SubcategoryId = reader.GetInt32(o.SubId),
+                        BrandId = brand.Id,
+                        Brand = brand,
+                        SubcategoryId = subcategory.Id,
+                        Subcategory = subcategory,
                         IsDiscount = reader.GetBoolean(o.IsD),
                         DiscountType = reader.IsDBNull(o.DT) ? null : (DiscountType?)reader.GetInt32(o.DT),
                         DiscountAmount = reader.IsDBNull(o.DA) ? null : reader.GetDecimal(o.DA),
                         DiscountTime = reader.IsDBNull(o.DTime) ? null : reader.GetDateTime(o.DTime),
                         FullDescriptionHTML = reader.IsDBNull(o.HTML) ? null : reader.GetString(o.HTML),
-                        AddedAt = reader.GetDateTime(o.Add)
-                    });
+                        AddedAt = reader.GetDateTime(o.Add),
+                        ImageAsset = asset
+                    };
+
+                    list.Add(product);
                 }
             }
             catch (Exception ex)
@@ -348,6 +399,7 @@ namespace hyggy_backend.Services
 
             return list;
         }
+
 
         public static async Task<int> UpdateProductAsync(Product product)
         {

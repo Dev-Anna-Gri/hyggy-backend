@@ -1,1 +1,11 @@
-{"Version":1,"Hash":"kjzLrMmdzqLSPmr3Yy5nkA8b+TVdN4aBIKSz6lVOlVg=","Source":"hyggy-backend","BasePath":"_content/hyggy-backend","Mode":"Default","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "Ojw9iNJzLp8PCmZ3FvE0bnxDN/Z3ZP/qpPmCUHU4Erk=",
+  "Source": "hyggy-backend",
+  "BasePath": "_content/hyggy-backend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
