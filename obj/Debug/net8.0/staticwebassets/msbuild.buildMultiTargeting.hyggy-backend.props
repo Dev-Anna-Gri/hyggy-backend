@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\hyggy-backend.props" />
+</Project>
