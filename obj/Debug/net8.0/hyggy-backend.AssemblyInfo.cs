@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("hyggy-backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0ae1bd65a31401fcb42830e860217d7a19eab794")]
 [assembly: System.Reflection.AssemblyProductAttribute("hyggy-backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("hyggy-backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
